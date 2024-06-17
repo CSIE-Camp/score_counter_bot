@@ -5,12 +5,22 @@ import asyncio
 import json
 from typing import Optional
 import json
-import os
+from adminRole import adminRoleName 
 
-#TODO : start the score system
+#TODO : show the score
 
+# 身分組檢查
+def roleCheck(role:str,usr:discord.Member):
+    rol = usr.roles
+    for i in rol:
+        if i.name == role:
+            return 1
+    return 0
+
+# JSON 處理
 score_file = "personal_score.json"
-async def all_score_read():
+team_score_file = "team_score.json"
+async def allScoreRead():
     try:
         with open(score_file, 'r') as r:
             data = json.load(r)
@@ -21,15 +31,27 @@ async def all_score_read():
         with open(score_file, 'r') as r:
             data = json.load(r)
     return data
-async def sort_score():
-    data = await all_score_read()
+async def allTeamScoreRead():
+    try:
+        with open(team_score_file, 'r') as r:
+            data = json.load(r)
+            print(data)
+    except:
+        with open(team_score_file, "w") as w:
+            w.write("{}")
+        with open(team_score_file, 'r') as r:
+            data = json.load(r)
+    return data
+
+async def sortScore():
+    data = await allScoreRead()
     data = dict(sorted(data.items(), key=lambda x: x[1]["personal score"], reverse=True))
     with open(score_file, "w") as w:
         json.dump(data, w)
     return 0
 
-async def new_student(team:int,name):
-    all_data = await all_score_read()
+async def newStudent(team:int,name):
+    all_data = await allScoreRead()
     if name in all_data:
         return 0
     else:
@@ -39,84 +61,62 @@ async def new_student(team:int,name):
         with open(score_file, "w") as w:
             json.dump(all_data, w)
     return 1
+async def newTeam(team:int):
+    all_data = await allTeamScoreRead()
+    if str(team) in all_data:
+        return 0
+    else:
+        all_data[str(team)] = {}
+        all_data[str(team)]["team score"] = 0
+        with open(team_score_file, "w") as w:
+            json.dump(all_data, w)
+    return 1
 
-async def personal_score_write(team:int, name, score:int):
-    data = await all_score_read()
-    if await new_student(team, name):
-        data = await all_score_read()
+async def personalScoreWrite(team:int, name, score:int):
+    data = await allScoreRead()
+    if await newStudent(team, name):
+        data = await allScoreRead()
         data[name]["personal score"] = score
     else:
         data[name]["personal score"] += score
     with open(score_file, "w") as w:
         json.dump(data, w)
-    await sort_score()
+    await sortScore()
     return 0
-async def team_score_write(team, score):
-    data = await all_score_read()
-    data[team]["team score"] += score
-    with open("../team_score.json", "w") as w:
+async def teamScoreWrite(team, score):
+    data = await allTeamScoreRead()
+    if await newTeam(team):
+        data = await allTeamScoreRead()
+        data[str(team)]["team score"] = score
+    else:
+        data[str(team)]["team score"] += score
+    with open(team_score_file, "w") as w:
         json.dump(data, w)
+    personal_data = await allScoreRead()
+    for i in personal_data:
+        if personal_data[i]["team"] == team:
+            personal_data[i]["personal score"] += score
+    with open(score_file, "w") as w:
+        json.dump(personal_data, w)
+    await sortScore()
     return 0
 
 class Score(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+    # 斜線命令
     @app_commands.command(name = "score_add", description = "變動小隊員分數")
     @app_commands.describe(team_idx = "輸入數字", name = "輸入名字", score = "輸入分數")
     async def score_add(self, interaction: discord.Interaction, team_idx: int, name: str, score: int):
-        await personal_score_write(team_idx, name, score)
-        await interaction.response.send_message("done")
+        if roleCheck(adminRoleName,interaction.user):
+            await personalScoreWrite(team_idx, name, score)
+            await interaction.response.send_message("done")
+    # 斜線命令
+    @app_commands.command(name = "team_score_add", description = "變動小隊分數")
+    @app_commands.describe(team_idx = "輸入數字", score = "輸入分數")
+    async def team_score_add(self, interaction: discord.Interaction, team_idx: int, score: int):
+        if roleCheck(adminRoleName,interaction.user):
+            await teamScoreWrite(team_idx, score)
+            await interaction.response.send_message("done")
 async def setup(bot: commands.Bot):
     await bot.add_cog(Score(bot))
-
-
-    # async def on_message(message):
-    #     if message.author == client.user:
-    #         return 0
-    #     t = message.content.split("!", 1)
-    #     if message.content.startswith("help"):
-    #         texts = open("help.md", "rb")
-    #         say = texts.read().decode("utf-8")
-    #         texts.close()
-    #         await message.channel.send(say)
-    #         # delete help message and ask help message in 5s
-    #         await asyncio.sleep(5)  # sec
-    #         await message.channel.purge(limit=2, check=content_help)
-    #     if message.content.startswith("score"):
-    #         try:
-    #             data = await all_score_read()
-    #             if message.content == "score!":
-    #                 for i in data:
-    #                     await message.channel.send(f"{i} : {data[i]}")
-    #             else:
-    #                 await ind_err(message)
-    #         except:
-    #             await ind_err(message)
-    #     if message.content.startswith("add"):
-    #         try:
-    #             data = await all_score_read()
-    #             if message.content == "add":
-    #                 await message.channel.send("error")
-    #             else:
-    #                 t = message.content.split(" ", 3)
-    #                 await personal_score_write(int(t[1]), t[2], int(t[3]))
-    #                 await message.channel.send("done")
-    #         except:
-    #             await ind_err(message)
-    #     if message.content.startswith("team_add"):
-    #         try:
-    #             data = await all_score_read()
-    #             if message.content == "team_add":
-    #                 await ind_err(message)
-    #             else:
-    #                 t = message.content.split(" ", 2)
-    #                 await team_score_write(int(t[1]),int(t[2]))
-    #                 await message.channel.send("done")
-    #         except:
-    #             await ind_err(message)
-    #     if message.content.startswith("role"):
-    #         rol =  message.author.roles
-    #         for i in rol:
-    #             if i.name == "admin":
-    #                 await message.channel.send("admin")
-    #                 break
