@@ -11,7 +11,7 @@ Score counter using Discord bot for CSIE camp.
 2. Create virtual environment with Python 3.10.12
 3. setting up the environment variables.
 
-example of virtualevnv:
+example of virtualenv:
 `activate`:
 ```bash
 ...
