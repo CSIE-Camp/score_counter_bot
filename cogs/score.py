@@ -9,14 +9,18 @@ import os
 
 #TODO : start the score system
 
-score_file = "../personal_score.json"
+score_file = "personal_score.json"
 async def all_score_read():
-        if(score_file not in os.listdir()):
-            with open(score_file, "w") as w:
-                w.write("{}")
+    try:
         with open(score_file, 'r') as r:
             data = json.load(r)
-        return data
+            print(data)
+    except:
+        with open(score_file, "w") as w:
+            w.write("{}")
+        with open(score_file, 'r') as r:
+            data = json.load(r)
+    return data
 async def sort_score():
     data = await all_score_read()
     data = dict(sorted(data.items(), key=lambda x: x[1]["personal score"], reverse=True))
@@ -59,12 +63,12 @@ class Score(commands.Cog):
         self.bot = bot
     @app_commands.command(name = "score_add", description = "變動小隊員分數")
     @app_commands.describe(team_idx = "輸入數字", name = "輸入名字", score = "輸入分數")
-    async def add(self, interaction: discord.Interaction, team_idx: int, name: str, score: int):
+    async def score_add(self, interaction: discord.Interaction, team_idx: int, name: str, score: int):
         await personal_score_write(team_idx, name, score)
         await interaction.response.send_message("done")
 async def setup(bot: commands.Bot):
     await bot.add_cog(Score(bot))
-#    
+
 
     # async def on_message(message):
     #     if message.author == client.user:
