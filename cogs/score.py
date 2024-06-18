@@ -1,10 +1,11 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
+from discord.app_commands import Choice
 import asyncio
 import json
 from typing import Optional
-from adminRole import adminRoleName 
+from adminRole import adminRoleName
 from sort import score_sort
 import os
 import shutil
@@ -23,7 +24,10 @@ score_file = "data.json"
 def initScore():
     src = "sample.json"
     dst = score_file
-    if os.path.exists(dst):
+    try:
+        with open(dst, "r") as r:
+            pass
+    except FileNotFoundError:
         os.remove(dst)
     shutil.copyfile(src, dst)
 
@@ -75,14 +79,42 @@ async def personalScoreWrite(team: int, member: int, score: int):
 class Score(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        initScore()
 
     @app_commands.command(name="score_add", description="變動小隊員分數")
     @app_commands.describe(team_idx="輸入數字", id="輸入編號", score="輸入分數")
+    @app_commands.choices(
+    team_idx = [
+        Choice(name = "第一小隊", value = 1),
+        Choice(name = "第二小隊", value = 2),
+        Choice(name = "第三小隊", value = 3),
+        Choice(name = "第四小隊", value = 4),
+        Choice(name = "第五小隊", value = 5),
+        Choice(name = "第六小隊", value = 6),
+        Choice(name = "第七小隊", value = 7),
+        Choice(name = "第八小隊", value = 8),
+    ],
+    id = [
+        Choice(name = "1 號", value = 1),
+        Choice(name = "2 號", value = 2),
+        Choice(name = "3 號", value = 3),
+        Choice(name = "4 號", value = 4),
+        Choice(name = "5 號", value = 5),
+        Choice(name = "6 號", value = 6),
+        Choice(name = "7 號", value = 7),
+        Choice(name = "8 號", value = 8),
+        Choice(name = "9 號", value = 9),
+        Choice(name = "10 號", value = 10),
+    ],
+)
     async def score_add(self, interaction: discord.Interaction, team_idx: int, id: int, score: int):
         if roleCheck(adminRoleName, interaction.user):
+            # await interaction.response.defer()
+            print(team_idx, id, score)
             await personalScoreWrite(team_idx, id, score)
             await interaction.response.send_message("done")
+        else:
+            print(f"{interaction.user} try to add score")
+
     @commands.Cog.listener()
     async def on_interaction(self, interaction: discord.Interaction):
         if "custom_id" in interaction.data:
@@ -110,16 +142,16 @@ class Score(commands.Cog):
                 else:
                     await interaction.response.send_message("是否暱稱與姓名不同？", ephemeral=True)
 
-    @commands.command(name="show_my_score", description="顯示個人排名")
+    @commands.command(name="show_score")
     async def button_interaction_on(self, interaction: discord.Interaction):
         view = discord.ui.View()
         button = discord.ui.Button(
-            label="點我查看分數",
+            label="點我查看點數與排名",   
             style=discord.ButtonStyle.blurple,
             custom_id="get_score"
         )
         view.add_item(button)
-        await interaction.channel.send("點我查看分數", view=view)
+        await interaction.channel.send(view=view)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Score(bot))
