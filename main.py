@@ -22,7 +22,7 @@ token = os.getenv("DC_BOT_TOKEN")
 bot = commands.Bot(command_prefix='$', intents=intents)
 
 @bot.command()
-async def reloadAll(ctx):
+async def reload(ctx):
     try:
         if role_check("admin",ctx.message):
             for i in __cogs:
@@ -33,7 +33,10 @@ async def reloadAll(ctx):
     except Exception as e:
         await ctx.send("reload error")
         print(f"reload error {e}")
-
+# @bot.command()
+# async def help(ctx):
+#     with open("HELP.md","r") as f:
+#         await ctx.send(f.read())
 
 @bot.event
 async def on_ready():
