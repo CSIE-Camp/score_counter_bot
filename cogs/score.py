@@ -18,106 +18,58 @@ def roleCheck(role: str, usr: discord.Member):
     return 0
 
 # JSON 處理
-score_file = "personal_score.json"
-team_score_file = "team_score.json"
+score_file = "data.json"
 
 def initScore():
     src = "sample.json"
-    dst = "personal_score.json"
+    dst = score_file
     if os.path.exists(dst):
         os.remove(dst)
     shutil.copyfile(src, dst)
 
-async def addScore():
-    if not os.path.isfile(score_file):
-        await initScore()
 
 async def allScoreRead():
-    if not os.path.isfile(score_file):
-        await initScore()
-    with open(score_file, "r") as r:
-        return json.load(r)
-
-async def allTeamScoreRead():
-    if not os.path.isfile(team_score_file):
-        with open(team_score_file, "w") as w:
-            json.dump({}, w)
-    with open(team_score_file, "r") as r:
-        return json.load(r)
+    try:
+        with open(score_file, "r") as r:
+            return json.load(r)
+    except FileNotFoundError:
+        initScore()
+        with open(score_file, "r") as r:
+            return json.load(r)
+        
 
 async def newStudent(team, member_id):
     data = await allScoreRead()
     team_str = str(team)
-    # member_id_str = str(member_id)
+    member_id_str = str(member_id)
     
-    if member_id in data[team_str]["members"]:
-        return 0
+    if member_id_str in data[team_str]["members"]:
+        return False
     else:
         if "members" not in data[team_str]:
             data[team_str]["members"] = {}
-        data[team_str]["members"][member_id] = {"score": 0, "name": f"member{member_id}"}
+        data[team_str]["members"][member_id_str] = {"score": 0, "name": f"member{member_id_str}"}
         with open(score_file, "w") as w:
             json.dump(data, w)
-    return 1
+    return True
 
-async def newTeam(team):
-    data = await allTeamScoreRead()
-    team_str = str(team)
-    
-    if team_str in data:
-        return 0
-    else:
-        data[team_str] = {"members": {}, "total": 0}
-        with open(team_score_file, "w") as w:
-            json.dump(data, w)
-    return 1
-    
-async def sortScore():
-    data = await allScoreRead()
-    sorted_data = {}
-    for team, details in data.items():
-        members = details["members"]
-        sorted_members = dict(sorted(members.items(), key=lambda x: x[1]["score"], reverse=True))
-        sorted_data[team] = {"members": sorted_members, "total": details["total"]}
-    with open(score_file, "w") as w:
-        json.dump(sorted_data, w)
-    return 0
 
-async def personalScoreWrite(team: int, member: str, score: int):
-    await addScore()
-    data = await allScoreRead()
+async def personalScoreWrite(team: int, member: int, score: int):
     # print(data)
     team_str = str(team)
-    if await newStudent(team_str, member):
-        print(member)
+    member_str = str(member)
+    if await newStudent(team_str, member_str):
+        print(member_str)
         data = await allScoreRead()
-        data[team_str]["members"][member] = {"score": score, "name": f"member{member}"}
-    else:
-        data[team_str]["members"][member]["score"] += score
-        # print(data[team_str]["members"][member]["score"])
-    
-    with open(score_file, "w") as w:
-        json.dump(data, w)
-    
-    await sortScore()
-    return 0
-
-async def teamScoreWrite(team: int, score: int):
-    data = await allScoreRead()
-    team_str = str(team)
-    
-    if await newTeam(team_str):
-        data[team_str] = {"total": score, "members": {}}
-    else:
+        data[team_str]["members"][member_str]["score"] += score
         data[team_str]["total"] += score
-    
-    for member_id in data[team_str]["members"]:
-        data[team_str]["members"][member_id]["score"] += score
-    
+    else:
+        data = await allScoreRead()
+        data[team_str]["members"][member_str]["score"] += score
+        data[team_str]["total"] += score
+        # print(data[team_str]["members"][member]["score"])
     with open(score_file, "w") as w:
         json.dump(data, w)
-    
-    await sortScore()
     return 0
 
 class Score(commands.Cog):
@@ -126,20 +78,11 @@ class Score(commands.Cog):
         initScore()
 
     @app_commands.command(name="score_add", description="變動小隊員分數")
-    @app_commands.describe(team_idx="輸入數字", name="輸入名字", score="輸入分數")
-    async def score_add(self, interaction: discord.Interaction, team_idx: int, name: str, score: int):
+    @app_commands.describe(team_idx="輸入數字", id="輸入編號", score="輸入分數")
+    async def score_add(self, interaction: discord.Interaction, team_idx: int, id: int, score: int):
         if roleCheck(adminRoleName, interaction.user):
-            await personalScoreWrite(team_idx, name, score)
+            await personalScoreWrite(team_idx, id, score)
             await interaction.response.send_message("done")
-            
-
-    @app_commands.command(name="team_score_add", description="變動小隊分數")
-    @app_commands.describe(team_idx="輸入數字", score="輸入分數")
-    async def team_score_add(self, interaction: discord.Interaction, team_idx: int, score: int):
-        if roleCheck(adminRoleName, interaction.user):
-            await teamScoreWrite(team_idx, score)
-            await interaction.response.send_message("done")
-
     @commands.Cog.listener()
     async def on_interaction(self, interaction: discord.Interaction):
         if "custom_id" in interaction.data:
@@ -167,7 +110,7 @@ class Score(commands.Cog):
                 else:
                     await interaction.response.send_message("是否暱稱與姓名不同？", ephemeral=True)
 
-    @app_commands.command(name="show_my_score", description="顯示個人排名")
+    @commands.command(name="show_my_score", description="顯示個人排名")
     async def button_interaction_on(self, interaction: discord.Interaction):
         view = discord.ui.View()
         button = discord.ui.Button(
@@ -176,7 +119,7 @@ class Score(commands.Cog):
             custom_id="get_score"
         )
         view.add_item(button)
-        await interaction.response.send_message(view=view)
+        await interaction.channel.send("點我查看分數", view=view)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Score(bot))
