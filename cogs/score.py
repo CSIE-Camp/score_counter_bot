@@ -4,14 +4,13 @@ from discord import app_commands
 import asyncio
 import json
 from typing import Optional
-import json
 from adminRole import adminRoleName 
 from sort import score_sort
 import os
 import shutil
 
 # 身分組檢查
-def roleCheck(role:str,usr:discord.Member):
+def roleCheck(role: str, usr: discord.Member):
     rol = usr.roles
     for i in rol:
         if i.name == role:
@@ -19,42 +18,44 @@ def roleCheck(role:str,usr:discord.Member):
     return 0
 
 # JSON 處理
-score_file = "score.json"
+score_file = "personal_score.json"
 team_score_file = "team_score.json"
 
-async def initScore():
+def initScore():
     src = "sample.json"
     dst = "personal_score.json"
-    os.remove("personal_score.json")
+    if os.path.exists(dst):
+        os.remove(dst)
     shutil.copyfile(src, dst)
 
 async def addScore():
-    if os.path.isfile("personal_score.json") == False:
-        initScore()
-    
-
-async def deduction():
-    pass
+    if not os.path.isfile(score_file):
+        await initScore()
 
 async def allScoreRead():
+    if not os.path.isfile(score_file):
+        await initScore()
     with open(score_file, "r") as r:
         return json.load(r)
 
 async def allTeamScoreRead():
+    if not os.path.isfile(team_score_file):
+        with open(team_score_file, "w") as w:
+            json.dump({}, w)
     with open(team_score_file, "r") as r:
         return json.load(r)
 
 async def newStudent(team, member_id):
     data = await allScoreRead()
     team_str = str(team)
-    member_id_str = str(member_id)
+    # member_id_str = str(member_id)
     
-    if member_id_str in data[team_str]["members"]:
+    if member_id in data[team_str]["members"]:
         return 0
     else:
         if "members" not in data[team_str]:
             data[team_str]["members"] = {}
-        data[team_str]["members"][member_id_str] = {"score": 0, "name": f"member{member_id}"}
+        data[team_str]["members"][member_id] = {"score": 0, "name": f"member{member_id}"}
         with open(score_file, "w") as w:
             json.dump(data, w)
     return 1
@@ -73,21 +74,27 @@ async def newTeam(team):
     
 async def sortScore():
     data = await allScoreRead()
-    data = dict(sorted(data.items(), key=lambda x: x[1]["personal score"], reverse=True))
+    sorted_data = {}
+    for team, details in data.items():
+        members = details["members"]
+        sorted_members = dict(sorted(members.items(), key=lambda x: x[1]["score"], reverse=True))
+        sorted_data[team] = {"members": sorted_members, "total": details["total"]}
     with open(score_file, "w") as w:
-        json.dump(data, w)
+        json.dump(sorted_data, w)
     return 0
 
-async def personalScoreWrite(team: int, member_id: int, score: int):
+async def personalScoreWrite(team: int, member: str, score: int):
+    await addScore()
     data = await allScoreRead()
+    # print(data)
     team_str = str(team)
-    member_id_str = str(member_id)
-    
-    if await newStudent(team_str, member_id_str):
+    if await newStudent(team_str, member):
+        print(member)
         data = await allScoreRead()
-        data[team_str]["members"][member_id_str] = {"score": score, "name": f"member{member_id}"}
+        data[team_str]["members"][member] = {"score": score, "name": f"member{member}"}
     else:
-        data[team_str]["members"][member_id_str]["score"] += score
+        data[team_str]["members"][member]["score"] += score
+        # print(data[team_str]["members"][member]["score"])
     
     with open(score_file, "w") as w:
         json.dump(data, w)
@@ -116,36 +123,31 @@ async def teamScoreWrite(team: int, score: int):
 class Score(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-    # 斜線命令
-    @app_commands.command(name = "score_add", description = "變動小隊員分數")
-    @app_commands.describe(team_idx = "輸入數字", name = "輸入名字", score = "輸入分數")
+        initScore()
+
+    @app_commands.command(name="score_add", description="變動小隊員分數")
+    @app_commands.describe(team_idx="輸入數字", name="輸入名字", score="輸入分數")
     async def score_add(self, interaction: discord.Interaction, team_idx: int, name: str, score: int):
-        if roleCheck(adminRoleName,interaction.user):
+        if roleCheck(adminRoleName, interaction.user):
             await personalScoreWrite(team_idx, name, score)
             await interaction.response.send_message("done")
-    # 斜線命令
-    @app_commands.command(name = "team_score_add", description = "變動小隊分數")
-    @app_commands.describe(team_idx = "輸入數字", score = "輸入分數")
+            
+
+    @app_commands.command(name="team_score_add", description="變動小隊分數")
+    @app_commands.describe(team_idx="輸入數字", score="輸入分數")
     async def team_score_add(self, interaction: discord.Interaction, team_idx: int, score: int):
-        if roleCheck(adminRoleName,interaction.user):
+        if roleCheck(adminRoleName, interaction.user):
             await teamScoreWrite(team_idx, score)
             await interaction.response.send_message("done")
 
-    # 持續監聽
     @commands.Cog.listener()
     async def on_interaction(self, interaction: discord.Interaction):
-        # interaction.data 是一個包含交互資訊的字典
-        # 有些交互不包含 custom_id，需要判斷式處理來防止出錯
         if "custom_id" in interaction.data:
             if interaction.data["custom_id"] == "get_score":
-                # send a message only to the user who clicked the button on the channel
-                score_embed=discord.Embed(title="賭場分數")
-                # get user name
+                score_embed = discord.Embed(title="賭場分數")
                 user_name = interaction.user.nick
-                print(user_name)
-                if user_name == None:
+                if user_name is None:
                     user_name = interaction.user.global_name
-                print(user_name)
                 score_embed.set_author(name=user_name, icon_url=interaction.user.avatar.url, url="https://discord.com")
                 point = 0
                 rank = 0
@@ -157,27 +159,24 @@ class Score(commands.Cog):
                         usr_check = 1
                         break
                     
-                if(usr_check == 1):
+                if usr_check == 1:
                     await interaction.response.defer()
                     score_embed.add_field(name="點數", value=point, inline=True)
                     score_embed.add_field(name="排名", value=rank, inline=True)
-                    print(score_embed)
-                    await interaction.followup.send(embed=score_embed,ephemeral=True)
+                    await interaction.followup.send(embed=score_embed, ephemeral=True)
                 else:
-                    await interaction.response.send_message("是否暱稱與姓名不同？",ephemeral=True)
-    # 斜線命令
-    @app_commands.command(name = "show_my_score", description = "顯示個人排名")
+                    await interaction.response.send_message("是否暱稱與姓名不同？", ephemeral=True)
+
+    @app_commands.command(name="show_my_score", description="顯示個人排名")
     async def button_interaction_on(self, interaction: discord.Interaction):
-        # 宣告 View
         view = discord.ui.View()
-        # 使用 class 方式宣告 Button 並設置 custom_id
         button = discord.ui.Button(
-            label = "點我查看分數",
-            style = discord.ButtonStyle.blurple,
-            custom_id = "get_score"
+            label="點我查看分數",
+            style=discord.ButtonStyle.blurple,
+            custom_id="get_score"
         )
-        # 將 Button 添加到 View 中
         view.add_item(button)
-        await interaction.response.send_message(view = view)
+        await interaction.response.send_message(view=view)
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(Score(bot))
