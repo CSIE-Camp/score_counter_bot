@@ -1,10 +1,4 @@
 import json
+import os
+import shutil
 
-def initScore():
-    pass
-
-def addScore():
-    pass
-
-def deduction():
-    pass

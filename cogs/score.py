@@ -7,6 +7,8 @@ from typing import Optional
 import json
 from adminRole import adminRoleName 
 from sort import score_sort
+import os
+import shutil
 
 # 身分組檢查
 def roleCheck(role:str,usr:discord.Member):
@@ -17,31 +19,58 @@ def roleCheck(role:str,usr:discord.Member):
     return 0
 
 # JSON 處理
-score_file = "personal_score.json"
+score_file = "score.json"
 team_score_file = "team_score.json"
-async def allScoreRead():
-    try:
-        with open(score_file, 'r') as r:
-            data = json.load(r)
-            print(data)
-    except:
-        with open(score_file, "w") as w:
-            w.write("{}")
-        with open(score_file, 'r') as r:
-            data = json.load(r)
-    return data
-async def allTeamScoreRead():
-    try:
-        with open(team_score_file, 'r') as r:
-            data = json.load(r)
-            print(data)
-    except:
-        with open(team_score_file, "w") as w:
-            w.write("{}")
-        with open(team_score_file, 'r') as r:
-            data = json.load(r)
-    return data
 
+async def initScore():
+    src = "sample.json"
+    dst = "personal_score.json"
+    os.remove("personal_score.json")
+    shutil.copyfile(src, dst)
+
+async def addScore():
+    if os.path.isfile("personal_score.json") == False:
+        initScore()
+    
+
+async def deduction():
+    pass
+
+async def allScoreRead():
+    with open(score_file, "r") as r:
+        return json.load(r)
+
+async def allTeamScoreRead():
+    with open(team_score_file, "r") as r:
+        return json.load(r)
+
+async def newStudent(team, member_id):
+    data = await allScoreRead()
+    team_str = str(team)
+    member_id_str = str(member_id)
+    
+    if member_id_str in data[team_str]["members"]:
+        return 0
+    else:
+        if "members" not in data[team_str]:
+            data[team_str]["members"] = {}
+        data[team_str]["members"][member_id_str] = {"score": 0, "name": f"member{member_id}"}
+        with open(score_file, "w") as w:
+            json.dump(data, w)
+    return 1
+
+async def newTeam(team):
+    data = await allTeamScoreRead()
+    team_str = str(team)
+    
+    if team_str in data:
+        return 0
+    else:
+        data[team_str] = {"members": {}, "total": 0}
+        with open(team_score_file, "w") as w:
+            json.dump(data, w)
+    return 1
+    
 async def sortScore():
     data = await allScoreRead()
     data = dict(sorted(data.items(), key=lambda x: x[1]["personal score"], reverse=True))
@@ -49,54 +78,38 @@ async def sortScore():
         json.dump(data, w)
     return 0
 
-async def newStudent(team:int,name):
-    all_data = await allScoreRead()
-    if name in all_data:
-        return 0
-    else:
-        all_data[name] = {}
-        all_data[name]["team"] = team
-        all_data[name]["personal score"] = 0
-        with open(score_file, "w") as w:
-            json.dump(all_data, w)
-    return 1
-async def newTeam(team:int):
-    all_data = await allTeamScoreRead()
-    if str(team) in all_data:
-        return 0
-    else:
-        all_data[str(team)] = {}
-        all_data[str(team)]["team score"] = 0
-        with open(team_score_file, "w") as w:
-            json.dump(all_data, w)
-    return 1
-
-async def personalScoreWrite(team:int, name, score:int):
+async def personalScoreWrite(team: int, member_id: int, score: int):
     data = await allScoreRead()
-    if await newStudent(team, name):
+    team_str = str(team)
+    member_id_str = str(member_id)
+    
+    if await newStudent(team_str, member_id_str):
         data = await allScoreRead()
-        data[name]["personal score"] = score
+        data[team_str]["members"][member_id_str] = {"score": score, "name": f"member{member_id}"}
     else:
-        data[name]["personal score"] += score
+        data[team_str]["members"][member_id_str]["score"] += score
+    
     with open(score_file, "w") as w:
         json.dump(data, w)
+    
     await sortScore()
     return 0
-async def teamScoreWrite(team, score):
-    data = await allTeamScoreRead()
-    if await newTeam(team):
-        data = await allTeamScoreRead()
-        data[str(team)]["team score"] = score
+
+async def teamScoreWrite(team: int, score: int):
+    data = await allScoreRead()
+    team_str = str(team)
+    
+    if await newTeam(team_str):
+        data[team_str] = {"total": score, "members": {}}
     else:
-        data[str(team)]["team score"] += score
-    with open(team_score_file, "w") as w:
-        json.dump(data, w)
-    personal_data = await allScoreRead()
-    for i in personal_data:
-        if personal_data[i]["team"] == team:
-            personal_data[i]["personal score"] += score
+        data[team_str]["total"] += score
+    
+    for member_id in data[team_str]["members"]:
+        data[team_str]["members"][member_id]["score"] += score
+    
     with open(score_file, "w") as w:
-        json.dump(personal_data, w)
+        json.dump(data, w)
+    
     await sortScore()
     return 0
 
