@@ -18,7 +18,8 @@ while 1:
 
     for i in range(min(10, len(s))):
         cn_number = "一二三四五六七八九十"
-        display_.append({"name" :"第{}名".format(cn_number[i]) , "value" : "第{}組  {}\n 籌碼數量 : {}".format(cn_number[int(s[i][2]) - 1], s[i][1], s[i][0])})
+        display_.append({"name" :"第{}名".format(cn_number[i]) , "value" : "第{}組  {}\n 籌碼數量 : {}".format(cn_number[int(s[i][2]) - 1], s[i][1], s[i][0]),
+                        "inline":True})
 
 
     data["embeds"] = [
@@ -52,7 +53,8 @@ while 1:
     for i in range(min(10, len(s))):
         cn_number = "一二三四五六七八九十"
         display_.append({"name": "第{}名".format(cn_number[i]),
-                         "value": "第{}組 \n 籌碼數量 : {}".format(cn_number[int(s[i][1]) - 1], s[i][0])})
+                         "value": "第{}組 \n 籌碼數量 : {}".format(cn_number[int(s[i][1]) - 1], s[i][0]),
+                         "inline":True})
 
     data["embeds"] = [
         {
