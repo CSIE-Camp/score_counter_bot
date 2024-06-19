@@ -28,9 +28,7 @@ def initScore():
         with open(dst, "r") as r:
             pass
     except FileNotFoundError:
-        os.remove(dst)
-    shutil.copyfile(src, dst)
-
+        shutil.copyfile(src, dst)
 
 async def allScoreRead():
     try:
