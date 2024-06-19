@@ -1,0 +1,122 @@
+{
+    "1": {
+        "members": {
+            "1": {"score": 0, "name": "member1"},
+            "2": {"score": 0, "name": "member2"},
+            "3": {"score": 0, "name": "member3"},
+            "4": {"score": 0, "name": "member4"},
+            "5": {"score": 0, "name": "member5"},
+            "6": {"score": 0, "name": "member6"},
+            "7": {"score": 0, "name": "member7"},
+            "8": {"score": 0, "name": "member8"},
+            "9": {"score": 0, "name": "member9"},
+            "10": {"score": 0, "name": "member10"}
+        },
+        "total": 0
+    },
+    "2": {
+        "members": {
+            "1": {"score": 0, "name": "member11"},
+            "2": {"score": 0, "name": "member12"},
+            "3": {"score": 0, "name": "member13"},
+            "4": {"score": 0, "name": "member14"},
+            "5": {"score": 0, "name": "member15"},
+            "6": {"score": 0, "name": "member16"},
+            "7": {"score": 0, "name": "member17"},
+            "8": {"score": 0, "name": "member18"},
+            "9": {"score": 0, "name": "member19"},
+            "10": {"score": 0, "name": "member20"}
+        },
+        "total": 0
+    },
+    "3": {
+        "members": {
+            "1": {"score": 0, "name": "member21"},
+            "2": {"score": 0, "name": "member22"},
+            "3": {"score": 0, "name": "member23"},
+            "4": {"score": 0, "name": "member24"},
+            "5": {"score": 0, "name": "member25"},
+            "6": {"score": 0, "name": "member26"},
+            "7": {"score": 0, "name": "member27"},
+            "8": {"score": 0, "name": "member28"},
+            "9": {"score": 0, "name": "member29"},
+            "10": {"score": 0, "name": "member30"}
+        },
+        "total": 0
+    },
+    "4": {
+        "members": {
+            "1": {"score": 0, "name": "member31"},
+            "2": {"score": 0, "name": "member32"},
+            "3": {"score": 0, "name": "member33"},
+            "4": {"score": 0, "name": "member34"},
+            "5": {"score": 0, "name": "member35"},
+            "6": {"score": 0, "name": "member36"},
+            "7": {"score": 0, "name": "member37"},
+            "8": {"score": 0, "name": "member38"},
+            "9": {"score": 0, "name": "member39"},
+            "10": {"score": 0, "name": "member40"}
+        },
+        "total": 0
+    },
+    "5": {
+        "members": {
+            "1": {"score": 0, "name": "member41"},
+            "2": {"score": 0, "name": "member42"},
+            "3": {"score": 0, "name": "member43"},
+            "4": {"score": 0, "name": "member44"},
+            "5": {"score": 0, "name": "member45"},
+            "6": {"score": 0, "name": "member46"},
+            "7": {"score": 0, "name": "member47"},
+            "8": {"score": 0, "name": "member48"},
+            "9": {"score": 0, "name": "member49"},
+            "10": {"score": 0, "name": "member50"}
+        },
+        "total": 0
+    },
+    "6": {
+        "members": {
+            "1": {"score": 0, "name": "member51"},
+            "2": {"score": 0, "name": "member52"},
+            "3": {"score": 0, "name": "member53"},
+            "4": {"score": 0, "name": "member54"},
+            "5": {"score": 0, "name": "member55"},
+            "6": {"score": 0, "name": "member56"},
+            "7": {"score": 0, "name": "member57"},
+            "8": {"score": 0, "name": "member58"},
+            "9": {"score": 0, "name": "member59"},
+            "10": {"score": 0, "name": "member60"}
+        },
+        "total": 0
+    },
+    "7":{
+        "members": {
+            "1": {"score": 0, "name": "member61"},
+            "2": {"score": 0, "name": "member62"},
+            "3": {"score": 0, "name": "member63"},
+            "4": {"score": 0, "name": "member64"},
+            "5": {"score": 0, "name": "member65"},
+            "6": {"score": 0, "name": "member66"},
+            "7": {"score": 0, "name": "member67"},
+            "8": {"score": 0, "name": "member68"},
+            "9": {"score": 0, "name": "member69"},
+            "10": {"score": 0, "name": "member70"}
+        },
+        "total": 0
+    },
+    "8":{
+        "members": {
+            "1": {"score": 0, "name": "member71"},
+            "2": {"score": 0, "name": "member72"},
+            "3": {"score": 0, "name": "member73"},
+            "4": {"score": 0, "name": "member74"},
+            "5": {"score": 0, "name": "member75"},
+            "6": {"score": 0, "name": "member76"},
+            "7": {"score": 0, "name": "member77"},
+            "8": {"score": 0, "name": "member78"},
+            "9": {"score": 0, "name": "member79"},
+            "10": {"score": 0, "name": "member80"}
+        },
+        "total": 0
+    }
+}
