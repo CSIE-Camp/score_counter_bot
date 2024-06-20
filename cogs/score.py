@@ -74,6 +74,13 @@ async def personalScoreWrite(team: int, member: int, score: int):
         json.dump(data, w)
     return 0
 
+async def checkScore(team: int, member: int):
+    data = await allScoreRead()
+    team_str = str(team)
+    member_str = str(member)
+    print(data[team_str]["members"][member_str]["score"])
+    return data[team_str]["members"][member_str]["score"]
+
 class Score(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -108,8 +115,13 @@ class Score(commands.Cog):
         if roleCheck(adminRoleName, interaction.user):
             # await interaction.response.defer()
             print(team_idx, id, score)
-            await personalScoreWrite(team_idx, id, score)
-            await interaction.response.send_message("done")
+            score_now = await checkScore(team_idx, id)
+            score_now = int(score_now)
+            if score + score_now < 0:
+                await interaction.response.send_message("`分數`不可為負")
+            else:
+                await personalScoreWrite(team_idx, id, score)
+                await interaction.response.send_message("done")
         else:
             print(f"{interaction.user} try to add score")
 
@@ -143,8 +155,8 @@ class Score(commands.Cog):
                     await interaction.response.defer()
                     score_embed.add_field(name="小隊", value=team, inline=True)
                     score_embed.add_field(name="編號", value=id_num, inline=True)
-                    score_embed.add_field(name="點數", value=point, inline=True)
-                    score_embed.add_field(name="排名", value=rank, inline=True)
+                    score_embed.add_field(name="點數", value=point, inline=False)
+                    score_embed.add_field(name="排名", value=rank, inline=False)
                     await interaction.followup.send(embed=score_embed, ephemeral=True)
                 else:
                     await interaction.response.send_message("是否暱稱與姓名不同？", ephemeral=True)
