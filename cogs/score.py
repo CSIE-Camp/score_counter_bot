@@ -121,19 +121,28 @@ class Score(commands.Cog):
                 user_name = interaction.user.nick
                 if user_name is None:
                     user_name = interaction.user.global_name
-                score_embed.set_author(name=user_name, icon_url=interaction.user.avatar.url, url="https://discord.com")
+                if interaction.user.avatar is None:
+                    score_embed.set_author(name=user_name)
+                else:    
+                    score_embed.set_author(name=user_name, icon_url=interaction.user.avatar.url)
                 point = 0
                 rank = 0
+                team = 0
+                id_num = 0
                 usr_check = 0
                 for i in score_sort():
                     rank += 1
                     if i[1] == user_name:
                         point = i[0]
+                        team = i[2]
+                        id_num = i[3]
                         usr_check = 1
                         break
                     
                 if usr_check == 1:
                     await interaction.response.defer()
+                    score_embed.add_field(name="小隊", value=team, inline=True)
+                    score_embed.add_field(name="編號", value=id_num, inline=True)
                     score_embed.add_field(name="點數", value=point, inline=True)
                     score_embed.add_field(name="排名", value=rank, inline=True)
                     await interaction.followup.send(embed=score_embed, ephemeral=True)
