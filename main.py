@@ -3,9 +3,10 @@ import os
 import discord
 from discord.ext import commands
 import asyncio
+from adminRole import adminRoleName
 
-def role_check(role:str,mes):
-    rol = mes.author.roles
+def roleCheck(role:str,usr:discord.Member):
+    rol = usr.roles
     for i in rol:
         if i.name == role:
             return 1
@@ -24,7 +25,7 @@ bot = commands.Bot(command_prefix='$', intents=intents)
 @bot.command()
 async def reload(ctx):
     try:
-        if role_check("admin",ctx.message):
+        if roleCheck(adminRoleName,ctx.author):
             for i in __cogs:
                 await bot.reload_extension(f"cogs.{i}")
             await ctx.send("reload all cogs")
