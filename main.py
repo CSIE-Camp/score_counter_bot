@@ -4,13 +4,9 @@ import discord
 from discord.ext import commands
 import asyncio
 from adminRole import adminRoleName
+from adminRole import roleCheck
 
-def roleCheck(role:str,usr:discord.Member):
-    rol = usr.roles
-    for i in rol:
-        if i.name == role:
-            return 1
-    return 0
+
 
 __cogs=["admin","score"]
 
@@ -22,7 +18,7 @@ token = os.getenv("DC_BOT_TOKEN")
 
 bot = commands.Bot(command_prefix='$', intents=intents)
 
-@bot.command()
+@bot.command(name="reload" ,help="reload all cogs")
 async def reload(ctx):
     try:
         if roleCheck(adminRoleName,ctx.author):
@@ -42,7 +38,7 @@ async def reload(ctx):
 @bot.event
 async def on_ready():
     print('login: ', bot.user)
-    game = discord.Game("use \"help\" command to get help")
+    game = discord.Game("use `$help` command to get help")
     # discord.Status.<狀態>，可以是online,offline,idle,dnd,invisible
     await bot.change_presence(status=discord.Status.online, activity=game)
     
