@@ -3,8 +3,7 @@ import os
 import discord
 from discord.ext import commands
 import asyncio
-from adminRole import adminRoleName
-from adminRole import roleCheck
+from adminRole import *
 
 
 
@@ -21,7 +20,7 @@ bot = commands.Bot(command_prefix='$', intents=intents)
 @bot.command(name="reload" ,help="reload all cogs")
 async def reload(ctx):
     try:
-        if roleCheck(adminRoleName,ctx.author):
+        if roleCheck(adminRoleName,ctx.author) or roleCheck(superAdminRoleName,ctx.author):
             for i in __cogs:
                 await bot.reload_extension(f"cogs.{i}")
             await ctx.send("reload all cogs")
