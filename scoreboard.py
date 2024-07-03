@@ -1,6 +1,9 @@
 import requests
 import time
 import json
+import os
+
+url = os.getenv("WEBHOOK_URL")
 
 url = input()
 while 1:
