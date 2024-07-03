@@ -14,4 +14,3 @@ COPY cogs /app/cogs
 RUN pip install -r requirements.txt
 # run main.py & scoreboard.py
 CMD ["python", "main.py"]
-CMD ["python", "scoreboard.py"]
