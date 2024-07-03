@@ -4,8 +4,6 @@ import json
 import os
 
 url = os.getenv("WEBHOOK_URL")
-
-url = input()
 while 1:
     try:
         # s = []
